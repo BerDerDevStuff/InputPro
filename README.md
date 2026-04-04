@@ -77,6 +77,10 @@ end)
 
 See [`examples/ManualSetup.client.luau`](examples/ManualSetup.client.luau) for a complete example.
 
+## Code Generation
+
+The plugin can generate boilerplate code for your actions and insert it directly into your scripts. Select a `LocalScript` in the Explorer, then use **Edit > Insert Code** — pick an action, choose which events to bind (`Pressed`, `Released`, `StateChanged`), preview the output, and click Insert. The `require` block for InputProService is added automatically if missing.
+
 ## API Reference
 
 Full documentation: **[InputPro Docs](https://BerDerDevStuff.github.io/InputPro/)**

@@ -264,7 +264,7 @@
     <li>Press Play to test!</li>
   </ol>
 
-  <div class="screenshot">[Screenshot: Main editor view with actions and bindings]</div>
+  <div class="screenshot"><img src="assets/editor-main.png" alt="Main editor view with actions and bindings" style="max-width:100%;border-radius:6px;"></div>
 
   <h3>Contexts</h3>
   <p>Contexts group related actions and control when they're active. A game might have "Gameplay", "UI", and "Vehicle" contexts.</p>
@@ -275,7 +275,7 @@
   </ul>
   <p>Manage contexts via <strong>Context > Manage Contexts</strong> in the menu bar, or use the context dropdown in the top bar.</p>
 
-  <div class="screenshot">[Screenshot: Context Manager popup with Default, Priority, Sink columns]</div>
+  <div class="screenshot"><img src="assets/context-manager.png" alt="Context Manager popup" style="max-width:100%;border-radius:6px;"></div>
 
   <h3>Bindings</h3>
 
@@ -303,7 +303,7 @@
     <strong>Note:</strong> One action can have keyboard, gamepad, <em>and</em> touch bindings simultaneously. Players on mobile tap the button; players on keyboard/gamepad use the bound keys — all firing the same action callbacks.
   </div>
 
-  <div class="screenshot">[Screenshot: Action row with touch pill showing linked button]</div>
+  <div class="screenshot"><img src="assets/touch-link.png" alt="Action row with touch pill" style="max-width:100%;border-radius:6px;"></div>
 
   <h4>Analog Triggers</h4>
   <p>R2/L2 gamepad triggers support custom <strong>pressed/released thresholds</strong>. Click the binding's edit button to configure when the trigger registers as pressed or released (0.0–1.0 range).</p>
@@ -317,10 +317,47 @@
   </ul>
   <p><strong>File > Import Config</strong> reads an existing export back into the editor for modification.</p>
 
-  <div class="screenshot">[Screenshot: Export dialog with "Set as active config" checkbox]</div>
+  <div class="screenshot"><img src="assets/export-dialog.png" alt="Export dialog" style="max-width:100%;border-radius:6px;"></div>
 
-  <h3>Insert Code</h3>
-  <p>Select a <code>LocalScript</code> in the Explorer, then use <strong>Edit > Insert Code</strong> to inject boilerplate event connections (<code>BindPressed</code>, <code>BindReleased</code>, <code>BindStateChanged</code>) directly into your script. The require line for InputProService is added automatically if missing.</p>
+  <h3>Code Generation</h3>
+  <p>InputPro can generate boilerplate code for your actions and insert it directly into your scripts.</p>
+
+  <h4>How to use</h4>
+  <ol>
+    <li>Select a <code>LocalScript</code> in the Explorer</li>
+    <li>Go to <strong>Edit > Insert Code</strong> (or click the code icon on an action row)</li>
+    <li>Choose an action from the dropdown</li>
+    <li>Select which events to generate: <strong>Pressed</strong>, <strong>Released</strong>, <strong>StateChanged</strong></li>
+    <li>Preview the code, then click <strong>Insert</strong></li>
+  </ol>
+
+  <p>The generated code includes:</p>
+  <ul>
+    <li>The <code>require</code> block for InputProService (auto-skipped if already present)</li>
+    <li><code>BindPressed</code> / <code>BindReleased</code> callbacks (Bool actions only)</li>
+    <li><code>BindStateChanged</code> callback (all action types)</li>
+  </ul>
+
+  <pre><code>-- Example generated code for a "Jump" action:
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local InputProService = require(ReplicatedStorage
+    :WaitForChild("InputProRuntime")
+    :WaitForChild("InputProService")
+)
+
+InputProService.BindPressed("Jump", function()
+    -- Handle Jump pressed
+end)
+
+InputProService.BindReleased("Jump", function()
+    -- Handle Jump released
+end)</code></pre>
+
+  <div class="callout">
+    <strong>Tip:</strong> For non-Bool action types (Direction1D/2D/3D, ViewportPosition), only <code>StateChanged</code> is available — Pressed and Released are automatically disabled in the UI.
+  </div>
+
+  <div class="screenshot"><img src="assets/insert-code.png" alt="Insert Code popup with code preview" style="max-width:100%;border-radius:6px;"></div>
 
   <h3>Troubleshooting</h3>
   <table>
