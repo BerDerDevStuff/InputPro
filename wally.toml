@@ -1,0 +1,11 @@
+[package]
+name = "BerDerDevStuff/inputpro"
+version = "1.0.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+license = "MIT"
+description = "Client-side runtime for the InputPro input binding system. Bind actions, switch contexts, detect devices, show prompt hints."
+authors = ["BerDerDevStuff"]
+include = ["runtime/**", "LICENSE", "README.md"]
+
+[dependencies]

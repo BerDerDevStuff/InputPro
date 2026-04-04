@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InputPro — Documentation</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-card: #161b22;
+      --bg-code: #1c2128;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-dim: #8b949e;
+      --accent: #e8943a;
+      --accent-dim: #c97a2e;
+      --link: #e8943a;
+      --dark-badge: #2B2D42;
+      --warning: #d29922;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ---- NAV ---- */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      padding: 0 24px;
+    }
+    nav .nav-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; height: 60px; gap: 32px;
+    }
+    nav .logo {
+      font-weight: 700; font-size: 20px; color: var(--text);
+      text-decoration: none; display: flex; align-items: center; gap: 8px;
+    }
+    nav .logo span { color: var(--accent); }
+    nav .nav-links { display: flex; gap: 24px; }
+    nav .nav-links a {
+      color: var(--text-dim); text-decoration: none; font-size: 14px; font-weight: 500;
+      transition: color 0.15s;
+    }
+    nav .nav-links a:hover, nav .nav-links a.active { color: var(--text); }
+
+    /* ---- LAYOUT ---- */
+    .container { max-width: 1100px; margin: 0 auto; padding: 80px 24px 60px; }
+
+    /* ---- HERO ---- */
+    .hero {
+      text-align: center; padding: 80px 0 60px;
+    }
+    .hero h1 { font-size: 48px; font-weight: 800; margin-bottom: 12px; }
+    .hero h1 span { color: var(--accent); }
+    .hero .tagline { font-size: 20px; color: var(--text-dim); max-width: 600px; margin: 0 auto 32px; }
+    .hero .badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .badge {
+      display: inline-block; padding: 6px 14px; border-radius: 20px;
+      font-size: 13px; font-weight: 600;
+    }
+    .badge-green { background: var(--accent); color: #0d1117; font-weight: 700; }
+    .badge-dark { background: var(--dark-badge); color: var(--text); }
+    .badge-outline { border: 1px solid var(--border); color: var(--text-dim); }
+
+    /* ---- SECTION ---- */
+    section { padding: 48px 0; }
+    section + section { border-top: 1px solid var(--border); }
+    h2 {
+      font-size: 32px; font-weight: 700; margin-bottom: 8px;
+    }
+    h2 .section-badge {
+      font-size: 12px; vertical-align: middle; margin-left: 8px;
+      padding: 3px 10px; border-radius: 12px;
+    }
+    h3 { font-size: 22px; font-weight: 600; margin: 32px 0 12px; color: var(--accent); }
+    h4 { font-size: 16px; font-weight: 600; margin: 20px 0 8px; }
+    .section-desc { color: var(--text-dim); margin-bottom: 24px; max-width: 700px; }
+    p { margin-bottom: 12px; }
+    a { color: var(--link); }
+
+    /* ---- CARDS ---- */
+    .card-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px; margin: 24px 0;
+    }
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 20px;
+    }
+    .card h4 { margin-top: 0; color: var(--text); }
+    .card p { color: var(--text-dim); font-size: 14px; }
+
+    /* ---- CODE ---- */
+    pre {
+      background: var(--bg-code); border: 1px solid var(--border);
+      border-radius: 8px; padding: 16px 20px; overflow-x: auto;
+      font-size: 13px; line-height: 1.5; margin: 16px 0;
+    }
+    code {
+      font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+      font-size: 13px;
+    }
+    p code, li code, td code {
+      background: var(--bg-code); padding: 2px 6px; border-radius: 4px;
+      border: 1px solid var(--border); font-size: 12px;
+    }
+
+    /* ---- TABLES ---- */
+    table {
+      width: 100%; border-collapse: collapse; margin: 16px 0;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left; padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--text-dim); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    td code { white-space: nowrap; }
+
+    /* ---- API ENTRY ---- */
+    .api-entry {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 20px; margin: 16px 0;
+    }
+    .api-entry .signature {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 14px; font-weight: 600; color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .api-entry .desc { color: var(--text-dim); font-size: 14px; }
+    .api-entry .params { margin-top: 8px; font-size: 13px; }
+    .api-entry .params dt { color: var(--accent); font-family: monospace; margin-top: 6px; }
+    .api-entry .params dd { color: var(--text-dim); margin-left: 16px; }
+
+    /* ---- LISTS ---- */
+    ul, ol { margin: 8px 0 16px 24px; }
+    li { margin-bottom: 4px; }
+    li + li { margin-top: 4px; }
+
+    /* ---- CALLOUT ---- */
+    .callout {
+      border-left: 3px solid var(--accent);
+      background: var(--bg-card); padding: 12px 16px;
+      border-radius: 0 6px 6px 0; margin: 16px 0;
+      font-size: 14px;
+    }
+    .callout.warn { border-left-color: var(--warning); }
+    .callout strong { color: var(--text); }
+
+    /* ---- SCREENSHOT PLACEHOLDERS ---- */
+    .screenshot {
+      background: var(--bg-card); border: 2px dashed var(--border);
+      border-radius: 8px; padding: 40px; text-align: center;
+      color: var(--text-dim); font-size: 14px; margin: 16px 0;
+    }
+
+    /* ---- FOOTER ---- */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px; text-align: center;
+      color: var(--text-dim); font-size: 13px;
+    }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 32px; }
+      .hero .tagline { font-size: 16px; }
+      h2 { font-size: 24px; }
+      nav .nav-links { gap: 16px; }
+      nav .nav-links a { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- NAV                                                          -->
+<!-- ============================================================ -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 200" width="140" height="45"><g transform="translate(100, 100)"><path d="M-16,-49.5 Q-16,-55.5 -10,-55.5 L10,-55.5 Q16,-55.5 16,-49.5 L16,-23.5 Q16,-17.5 3,-7.5 Q0,-4.5 -3,-7.5 Q-16,-17.5 -16,-23.5 Z" fill="#f0f0f0"/><path d="M-16,49.5 Q-16,55.5 -10,55.5 L10,55.5 Q16,55.5 16,49.5 L16,23.5 Q16,17.5 3,7.5 Q0,4.5 -3,7.5 Q-16,17.5 -16,23.5 Z" fill="#f0f0f0"/><path d="M-49.5,-16 Q-55.5,-16 -55.5,-10 L-55.5,10 Q-55.5,16 -49.5,16 L-23.5,16 Q-17.5,16 -7.5,3 Q-4.5,0 -7.5,-3 Q-17.5,-16 -23.5,-16 Z" fill="#f0f0f0"/><path d="M49.5,-16 Q55.5,-16 55.5,-10 L55.5,10 Q55.5,16 49.5,16 L23.5,16 Q17.5,16 7.5,3 Q4.5,0 7.5,-3 Q17.5,-16 23.5,-16 Z" fill="#e8943a"/></g><text x="172" y="118" font-family="'Nunito', sans-serif" font-size="64" font-weight="800" letter-spacing="-1"><tspan fill="#f0f0f0">input</tspan><tspan fill="#e8943a">pro</tspan></text></svg></a>
+    <div class="nav-links">
+      <a href="#plugin">Plugin</a>
+      <a href="#runtime">Runtime API</a>
+      <a href="#manual">Manual Setup</a>
+      <a href="#action-types">Action Types</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- HERO                                                         -->
+<!-- ============================================================ -->
+<div class="container">
+<section class="hero">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 200" width="400" height="130" style="margin-bottom: 12px;"><g transform="translate(100, 100)"><path d="M-16,-49.5 Q-16,-55.5 -10,-55.5 L10,-55.5 Q16,-55.5 16,-49.5 L16,-23.5 Q16,-17.5 3,-7.5 Q0,-4.5 -3,-7.5 Q-16,-17.5 -16,-23.5 Z" fill="#f0f0f0"/><path d="M-16,49.5 Q-16,55.5 -10,55.5 L10,55.5 Q16,55.5 16,49.5 L16,23.5 Q16,17.5 3,7.5 Q0,4.5 -3,7.5 Q-16,17.5 -16,23.5 Z" fill="#f0f0f0"/><path d="M-49.5,-16 Q-55.5,-16 -55.5,-10 L-55.5,10 Q-55.5,16 -49.5,16 L-23.5,16 Q-17.5,16 -7.5,3 Q-4.5,0 -7.5,-3 Q-17.5,-16 -23.5,-16 Z" fill="#f0f0f0"/><path d="M49.5,-16 Q55.5,-16 55.5,-10 L55.5,10 Q55.5,16 49.5,16 L23.5,16 Q17.5,16 7.5,3 Q4.5,0 7.5,-3 Q17.5,-16 23.5,-16 Z" fill="#e8943a"/></g><text x="172" y="118" font-family="'Nunito', sans-serif" font-size="64" font-weight="800" letter-spacing="-1"><tspan fill="#f0f0f0">input</tspan><tspan fill="#e8943a">pro</tspan></text></svg>
+  <p class="tagline">Visual input binding editor for Roblox's Input Action System. Configure keyboard, gamepad, and touch bindings in Studio.</p>
+  <div class="badges">
+    <span class="badge badge-green">Free Runtime</span>
+    <span class="badge badge-dark">Studio Plugin</span>
+    <span class="badge badge-outline">Keyboard + Gamepad + Touch</span>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- OVERVIEW                                                     -->
+<!-- ============================================================ -->
+<section id="overview">
+  <h2>How It Works</h2>
+  <p class="section-desc">InputPro ships as two packages: a paid Studio plugin for visual editing, and a free open-source runtime for your game code.</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <h4>1. Create in Studio</h4>
+      <p>Use the visual editor to create contexts, actions, and bindings. Link your existing touch buttons to actions. Listen for keys in real time.</p>
+    </div>
+    <div class="card">
+      <h4>2. Export</h4>
+      <p>One click exports your config as Roblox instances to <code>StarterGui/InputPro/</code>. A bootstrap script is auto-created.</p>
+    </div>
+    <div class="card">
+      <h4>3. Use in Code</h4>
+      <p>The runtime reads your exported config and provides a simple API: <code>BindPressed</code>, <code>SetContext</code>, <code>CreatePromptHint</code>, and more.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    The runtime is free and open-source. You can use it without the plugin by building configs manually in code or by creating the instance hierarchy in Studio.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- PLUGIN                                                       -->
+<!-- ============================================================ -->
+<section id="plugin">
+  <h2>Plugin Guide <span class="section-badge badge-dark">Paid</span></h2>
+  <p class="section-desc">The InputPro plugin adds a visual editor to Roblox Studio for creating input bindings without writing code.</p>
+
+  <h3>Installation</h3>
+  <ol>
+    <li>Purchase and install the plugin from the <strong>Creator Store</strong></li>
+    <li>Open Studio — click the <strong>InputPro</strong> button in the toolbar</li>
+    <li>The editor widget opens as a dockable panel</li>
+  </ol>
+
+  <h3>Quick Start</h3>
+  <ol>
+    <li>The editor starts with a default <strong>"Gameplay"</strong> context</li>
+    <li>Click <strong>"+ Action"</strong> to create your first action (e.g. "Jump", type Bool)</li>
+    <li>Expand the action row, then click <strong>"+ Keyboard"</strong></li>
+    <li>The plugin enters listen mode — press a key (e.g. Space) and it's bound immediately</li>
+    <li>Go to <strong>File > Export Config</strong>, name it, and click Save</li>
+    <li>Press Play to test!</li>
+  </ol>
+
+  <div class="screenshot">[Screenshot: Main editor view with actions and bindings]</div>
+
+  <h3>Contexts</h3>
+  <p>Contexts group related actions and control when they're active. A game might have "Gameplay", "UI", and "Vehicle" contexts.</p>
+  <ul>
+    <li><strong>Priority</strong> — Higher priority contexts process input first</li>
+    <li><strong>Sink</strong> — When enabled, blocks input from reaching lower-priority contexts</li>
+    <li><strong>Default</strong> — One context can be marked as default; it auto-enables when the game starts</li>
+  </ul>
+  <p>Manage contexts via <strong>Context > Manage Contexts</strong> in the menu bar, or use the context dropdown in the top bar.</p>
+
+  <div class="screenshot">[Screenshot: Context Manager popup with Default, Priority, Sink columns]</div>
+
+  <h3>Bindings</h3>
+
+  <h4>Keyboard & Gamepad</h4>
+  <p>Expand an action row and click <strong>"+ Keyboard"</strong> or <strong>"+ Gamepad"</strong> to add a binding. The plugin enters <strong>Listen Mode</strong> — press a key or button and it's bound immediately. You can also add bindings manually from a dropdown.</p>
+
+  <div class="callout warn">
+    <strong>Reserved Keys:</strong> Some keys (F1-F12, Escape, etc.) are intercepted by Studio and cannot be bound via listen mode. Check <strong>Help > Reserved Keys</strong> for the full list.
+  </div>
+
+  <h4>Touch</h4>
+  <p>InputPro doesn't generate touch UI — you design your own buttons in StarterGui, then <strong>link</strong> them to actions in the plugin. This gives you full control over your mobile UI design.</p>
+
+  <h4 style="font-size: 15px; margin-top: 16px;">How to link a touch button</h4>
+  <ol>
+    <li>Create a <strong>TextButton</strong> or <strong>ImageButton</strong> in your ScreenGui (StarterGui)</li>
+    <li>Select an action in the plugin, then click <strong>+ Touch</strong></li>
+    <li>Select the button in the <strong>Explorer</strong> — the plugin validates it's a GuiButton</li>
+    <li>The link appears as a touch pill on the action row, showing the button name and path</li>
+  </ol>
+
+  <p>On export, each linked button is stored as attributes (<code>TouchButtonPath</code>, <code>TouchButtonName</code>) on the InputAction instance. At runtime, <code>InputProService</code> resolves the path in PlayerGui, creates an <code>InputBinding</code> with its <code>UIButton</code> property set to your button, and Roblox automatically wires tap events to the action's <code>Pressed</code>/<code>Released</code> signals.</p>
+
+  <div class="callout">
+    <strong>Note:</strong> One action can have keyboard, gamepad, <em>and</em> touch bindings simultaneously. Players on mobile tap the button; players on keyboard/gamepad use the bound keys — all firing the same action callbacks.
+  </div>
+
+  <div class="screenshot">[Screenshot: Action row with touch pill showing linked button]</div>
+
+  <h4>Analog Triggers</h4>
+  <p>R2/L2 gamepad triggers support custom <strong>pressed/released thresholds</strong>. Click the binding's edit button to configure when the trigger registers as pressed or released (0.0–1.0 range).</p>
+
+  <h3>Export & Import</h3>
+  <p><strong>File > Export Config</strong> creates the full instance hierarchy in <code>StarterGui/InputPro/&lt;name&gt;</code> and:</p>
+  <ul>
+    <li>Auto-installs the runtime to <code>ReplicatedStorage/InputProRuntime/</code></li>
+    <li>Creates a bootstrap <code>LocalScript</code> in <code>StarterPlayerScripts/</code></li>
+    <li>Optionally sets the exported config as active (so the bootstrap loads it)</li>
+  </ul>
+  <p><strong>File > Import Config</strong> reads an existing export back into the editor for modification.</p>
+
+  <div class="screenshot">[Screenshot: Export dialog with "Set as active config" checkbox]</div>
+
+  <h3>Insert Code</h3>
+  <p>Select a <code>LocalScript</code> in the Explorer, then use <strong>Edit > Insert Code</strong> to inject boilerplate event connections (<code>BindPressed</code>, <code>BindReleased</code>, <code>BindStateChanged</code>) directly into your script. The require line for InputProService is added automatically if missing.</p>
+
+  <h3>Troubleshooting</h3>
+  <table>
+    <tr><th>Problem</th><th>Solution</th></tr>
+    <tr>
+      <td>F key won't bind in listen mode</td>
+      <td>Studio intercepts F when Explorer has a selection. The plugin auto-clears selection on focus, but if it still happens, click inside the plugin widget first.</td>
+    </tr>
+    <tr>
+      <td>Gamepad not detected</td>
+      <td>Connect your gamepad before opening Studio. Ensure the viewport is in focus when using listen mode for gamepad — the plugin shows a reminder when you click "+ Gamepad".</td>
+    </tr>
+    <tr>
+      <td>Export not appearing</td>
+      <td>Check <code>StarterGui/InputPro/</code> in the Explorer. Make sure you haven't filtered instance types.</td>
+    </tr>
+    <tr>
+      <td>Bootstrap not running</td>
+      <td>Verify <code>StarterPlayerScripts/InputProBootstrap</code> exists and its <code>ConfigName</code> attribute matches your export name.</td>
+    </tr>
+  </table>
+</section>
+
+<!-- ============================================================ -->
+<!-- RUNTIME API                                                  -->
+<!-- ============================================================ -->
+<section id="runtime">
+  <h2>Runtime API <span class="section-badge badge-green">Free</span></h2>
+  <p class="section-desc">InputProService is a client-side module that reads exported configs and provides a clean API for input handling.</p>
+
+  <h3>Installation</h3>
+  <p>If you're using the plugin, the runtime is auto-installed on export. For manual installation:</p>
+  <ol>
+    <li>Download <code>InputProService.luau</code> from the <a href="#">GitHub repository</a></li>
+    <li>Place it in <code>ReplicatedStorage/InputProRuntime/InputProService</code></li>
+    <li>Require it from a <code>LocalScript</code></li>
+  </ol>
+
+  <pre><code>-- In a LocalScript (e.g. StarterPlayerScripts)
+local InputProService = require(
+    game:GetService("ReplicatedStorage")
+    :WaitForChild("InputProRuntime")
+    :WaitForChild("InputProService")
+)
+
+-- Initialize from an exported config
+InputProService.Init("MyGameInput")
+
+-- Or initialize for manual/code-only setup
+InputProService.InitManual()</code></pre>
+
+  <!-- Init -->
+  <h3>Initialization</h3>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.Init(configName: string)</div>
+    <div class="desc">Loads an exported config from <code>PlayerGui/InputPro/&lt;configName&gt;</code>. Caches all contexts and actions, wires touch bindings, and auto-enables the default context if one was set in the plugin. Must be called once before other API calls (or they yield until ready).</div>
+  </div>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.InitManual()</div>
+    <div class="desc">Marks the service as initialized without loading a config folder. Use this when building input mappings entirely from code via the Manual Creation API.</div>
+  </div>
+
+  <!-- Actions -->
+  <h3>Actions</h3>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.GetAction(name: string) -> InputAction?</div>
+    <div class="desc">Returns the InputAction instance by name. Supports both simple names (<code>"Jump"</code>) and qualified names (<code>"Gameplay/Jump"</code>). Returns nil if not found.</div>
+  </div>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.BindPressed(actionName: string, callback: () -> ()) -> Connection</div>
+    <div class="desc">Connects to the <strong>Pressed</strong> event of a Bool action. Fires when the action transitions from false to true (key pressed). Returns a Connection with a <code>:Disconnect()</code> method. Yields until Init completes.</div>
+  </div>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.BindReleased(actionName: string, callback: () -> ()) -> Connection</div>
+    <div class="desc">Connects to the <strong>Released</strong> event of a Bool action. Fires when the action transitions from true to false (key released). Returns a Connection with a <code>:Disconnect()</code> method.</div>
+  </div>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.BindStateChanged(actionName: string, callback: (value: any) -> ()) -> Connection</div>
+    <div class="desc">Connects to the <strong>StateChanged</strong> event of any action type. The callback receives the new state value: <code>boolean</code> for Bool, <code>number</code> for Direction1D, <code>Vector2</code> for Direction2D, <code>Vector3</code> for Direction3D.</div>
+  </div>
+
+  <pre><code>-- Bool action: Jump
+InputProService.BindPressed("Jump", function()
+    character:FindFirstChildWhichIsA("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+end)
+
+-- Direction2D action: Move (returns Vector2)
+InputProService.BindStateChanged("Move", function(value)
+    -- value is a Vector2 with X and Y components (-1 to 1)
+    moveDirection = Vector3.new(value.X, 0, value.Y)
+end)</code></pre>
+
+  <!-- Contexts -->
+  <h3>Contexts</h3>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.GetContext(name: string) -> InputContext?</div>
+    <div class="desc">Returns the InputContext instance by name, or nil if not found.</div>
+  </div>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.SetContext(contextName: string, exclusive: boolean?)</div>
+    <div class="desc">Enables a context. If <code>exclusive</code> is true, disables all other contexts first. Fires <code>ContextChanged</code>.</div>
+    <dl class="params">
+      <dt>exclusive = true</dt><dd>Only this context is active (e.g. switching to a menu)</dd>
+      <dt>exclusive = false</dt><dd>Additive — enable alongside existing contexts (e.g. adding a vehicle overlay)</dd>
+    </dl>
+  </div>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.DisableContext(contextName: string)</div>
+    <div class="desc">Disables a specific context. Fires <code>ContextChanged</code>.</div>
+  </div>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.ContextChanged: Signal(contextName: string, enabled: boolean)</div>
+    <div class="desc">Event that fires whenever a context is enabled or disabled. Connect with <code>:Connect(callback)</code>.</div>
+  </div>
+
+  <pre><code>-- Exclusive switch: only Gameplay is active
+InputProService.SetContext("Gameplay", true)
+
+-- Additive: enable UI alongside Gameplay
+InputProService.SetContext("UI", false)
+
+-- Disable a specific context
+InputProService.DisableContext("UI")
+
+-- Listen for context changes
+InputProService.ContextChanged:Connect(function(name, enabled)
+    print(name, enabled and "ON" or "OFF")
+end)</code></pre>
+
+  <!-- Device Detection -->
+  <h3>Device Detection</h3>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.GetActiveDevice() -> "Keyboard" | "Gamepad" | "Touch"</div>
+    <div class="desc">Returns the current active input device category. Updates automatically based on the player's last input type.</div>
+  </div>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.ActiveDeviceChanged: Signal(device: string)</div>
+    <div class="desc">Fires when the player switches between input devices (e.g. from keyboard to gamepad). Use this to update UI prompts.</div>
+  </div>
+
+  <!-- Input Images -->
+  <h3>Input Images</h3>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.GetInputImage(actionName: string, device: string?) -> (imageId?, keyName?)</div>
+    <div class="desc">Returns the display info for an action's binding on the current (or specified) device.
+      <ul style="margin-top:8px">
+        <li><strong>Gamepad:</strong> returns <code>(assetId, keyCodeName)</code> — use the asset for button glyphs</li>
+        <li><strong>Keyboard:</strong> returns <code>(nil, displayName)</code> — e.g. "E", "Space", "LShift"</li>
+        <li><strong>Touch:</strong> returns <code>(nil, nil)</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Prompt Hints -->
+  <h3>Prompt Hints</h3>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.CreatePromptHint(actionName, parent, config?) -> PromptHint</div>
+    <div class="desc">Creates an auto-updating key badge on a UI element. Shows keyboard key name or gamepad button glyph. Automatically hides on touch devices. Updates when the player switches input device.</div>
+    <dl class="params">
+      <dt>parent: GuiObject</dt><dd>The UI element to attach the badge to</dd>
+      <dt>config.Corner: string?</dt><dd><code>"TopLeft"</code>, <code>"TopRight"</code> (default), <code>"BottomLeft"</code>, <code>"BottomRight"</code>, <code>"Center"</code></dd>
+      <dt>config.Size: number?</dt><dd>Badge size in pixels (default 32)</dd>
+      <dt>config.Offset: Vector2?</dt><dd>Position offset from the corner</dd>
+    </dl>
+  </div>
+
+  <pre><code>-- Add a key hint badge to an inventory slot
+local hint = InputProService.CreatePromptHint("OpenInventory", inventoryButton, {
+    Corner = "BottomRight",
+    Size = 28,
+    Offset = Vector2.new(4, 4),
+})
+
+-- hint.Frame   — the UI frame instance
+-- hint.Update() — force refresh
+-- hint.Destroy() — cleanup</code></pre>
+
+  <div class="callout">
+    <strong>Custom template:</strong> If a <code>PromptHintTemplate</code> Frame exists in your exported config folder, it will be cloned instead of the default badge. The template must contain children named <code>GlyphImage</code> (ImageLabel) and <code>KeyText</code> (TextLabel).
+  </div>
+
+</section>
+
+<!-- ============================================================ -->
+<!-- MANUAL SETUP                                                 -->
+<!-- ============================================================ -->
+<section id="manual">
+  <h2>Manual Setup <span class="section-badge badge-outline">No Plugin</span></h2>
+  <p class="section-desc">You can use InputProService without the plugin by creating contexts, actions, and bindings in code.</p>
+
+  <h3>Manual Creation API</h3>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.CreateContext(name, priority, sink) -> InputContext</div>
+    <div class="desc">Creates a new InputContext at runtime. Higher priority contexts process input first. If <code>sink</code> is true, input doesn't pass to lower-priority contexts.</div>
+  </div>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.CreateAction(contextName, actionName, actionType) -> InputAction?</div>
+    <div class="desc">Creates a new InputAction under an existing context. Action types: <code>Enum.InputActionType.Bool</code>, <code>Direction1D</code>, <code>Direction2D</code>, <code>Direction3D</code>, <code>ViewportPosition</code>.</div>
+  </div>
+
+  <div class="api-entry">
+    <div class="signature">InputProService.CreateBinding(actionName, keyCode?, inputType?, config?) -> InputBinding?</div>
+    <div class="desc">Creates a new InputBinding under an existing action. Provide a <code>KeyCode</code> for keyboard/gamepad buttons. The optional <code>config</code> table accepts <code>PressedThreshold</code> and <code>ReleasedThreshold</code> for analog triggers (R2/L2 auto-default to 0.1).</div>
+  </div>
+
+  <h3>Complete Example</h3>
+  <pre><code>-- ManualSetup.client.luau (place in StarterPlayerScripts)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local InputProService = require(
+    ReplicatedStorage:WaitForChild("InputProRuntime"):WaitForChild("InputProService")
+)
+
+-- Initialize without a config file
+InputProService.InitManual()
+
+-- Create contexts
+InputProService.CreateContext("Gameplay", 1, false)
+InputProService.CreateContext("UI", 2, true) -- higher priority, sinks input
+
+-- Create actions
+InputProService.CreateAction("Gameplay", "Jump", Enum.InputActionType.Bool)
+InputProService.CreateAction("Gameplay", "Sprint", Enum.InputActionType.Bool)
+InputProService.CreateAction("Gameplay", "Move", Enum.InputActionType.Direction2D)
+InputProService.CreateAction("UI", "CloseMenu", Enum.InputActionType.Bool)
+
+-- Bind keys
+InputProService.CreateBinding("Jump", Enum.KeyCode.Space)
+InputProService.CreateBinding("Jump", Enum.KeyCode.ButtonA)          -- Gamepad A
+InputProService.CreateBinding("Sprint", Enum.KeyCode.LeftShift)
+InputProService.CreateBinding("Sprint", Enum.KeyCode.ButtonL2, nil, {
+    PressedThreshold = 0.3,
+    ReleasedThreshold = 0.2,
+})
+InputProService.CreateBinding("Move", Enum.KeyCode.W)                -- Forward
+InputProService.CreateBinding("Move", Enum.KeyCode.S)                -- Backward
+InputProService.CreateBinding("Move", Enum.KeyCode.A)                -- Left
+InputProService.CreateBinding("Move", Enum.KeyCode.D)                -- Right
+InputProService.CreateBinding("Move", Enum.KeyCode.Thumbstick1)      -- Gamepad stick
+InputProService.CreateBinding("CloseMenu", Enum.KeyCode.Escape)
+InputProService.CreateBinding("CloseMenu", Enum.KeyCode.ButtonB)
+
+-- Enable the default context
+InputProService.SetContext("Gameplay", true)
+
+-- Connect events
+InputProService.BindPressed("Jump", function()
+    print("Jump!")
+end)
+
+InputProService.BindPressed("Sprint", function()
+    print("Sprint started")
+end)
+
+InputProService.BindReleased("Sprint", function()
+    print("Sprint ended")
+end)
+
+InputProService.BindStateChanged("Move", function(value)
+    print("Move direction:", value)
+end)
+
+-- Context switching example
+InputProService.BindPressed("CloseMenu", function()
+    InputProService.SetContext("Gameplay", true) -- exclusive: back to gameplay
+end)
+
+-- Device detection
+InputProService.ActiveDeviceChanged:Connect(function(device)
+    print("Switched to:", device) -- "Keyboard", "Gamepad", or "Touch"
+end)</code></pre>
+
+  <h3>Folder Structure (Plugin Export)</h3>
+  <p>If you're curious what the plugin creates, here's the instance hierarchy it exports to <code>StarterGui/InputPro/&lt;ConfigName&gt;/</code>:</p>
+  <pre><code>StarterGui/
+  InputPro/                    -- Folder
+    MyGameInput/                -- Folder (your config name)
+      @DefaultContext = "Gameplay"   -- Attribute (optional)
+      Gameplay/                 -- InputContext
+        Priority = 1
+        Sink = false
+        Jump/                   -- InputAction (Type = Bool)
+          @TouchButtonPath = "game.StarterGui.MobileUI.JumpBtn"  -- (if linked)
+          @TouchButtonName = "JumpBtn"                           -- (if linked)
+          Keyboard_Space/       -- InputBinding (KeyCode = Space)
+          Gamepad1_ButtonA/     -- InputBinding (KeyCode = ButtonA)
+        Move/                   -- InputAction (Type = Direction2D)
+          Keyboard_W/           -- InputBinding
+          Keyboard_S/
+          ...
+      UI/                       -- InputContext
+        Priority = 2
+        Sink = true
+        CloseMenu/              -- InputAction
+          ...</code></pre>
+
+  <div class="callout">
+    <strong>Tip:</strong> You can build this hierarchy manually in Studio without the plugin, then use <code>InputProService.Init("MyGameInput")</code> to load it. The runtime doesn't care how the instances were created.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ACTION TYPES                                                 -->
+<!-- ============================================================ -->
+<section id="action-types">
+  <h2>Action Types</h2>
+  <p class="section-desc">Action types determine what kind of value an InputAction produces. Choose the type that matches your gameplay need.</p>
+
+  <table>
+    <tr>
+      <th>Type</th>
+      <th>Value</th>
+      <th>Use Case</th>
+      <th>Events</th>
+    </tr>
+    <tr>
+      <td><code>Bool</code></td>
+      <td><code>boolean</code></td>
+      <td>Jump, shoot, sprint, interact — any on/off action</td>
+      <td>Pressed, Released, StateChanged</td>
+    </tr>
+    <tr>
+      <td><code>Direction1D</code></td>
+      <td><code>number</code></td>
+      <td>Throttle, zoom level, single-axis analog input</td>
+      <td>StateChanged</td>
+    </tr>
+    <tr>
+      <td><code>Direction2D</code></td>
+      <td><code>Vector2</code></td>
+      <td>Character movement, camera rotation, 2D stick input</td>
+      <td>StateChanged</td>
+    </tr>
+    <tr>
+      <td><code>Direction3D</code></td>
+      <td><code>Vector3</code></td>
+      <td>Flight controls, 6DOF movement (up/down + left/right + forward/back)</td>
+      <td>StateChanged</td>
+    </tr>
+    <tr>
+      <td><code>ViewportPosition</code></td>
+      <td><code>Vector2</code></td>
+      <td>Mouse cursor position, touch point, screen-space raycasting</td>
+      <td>StateChanged</td>
+    </tr>
+  </table>
+
+  <div class="callout">
+    <strong>Bool</strong> is the only type that fires <code>Pressed</code> and <code>Released</code> events. For all other types, use <code>BindStateChanged</code> to receive continuous value updates.
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- FOOTER                                                       -->
+<!-- ============================================================ -->
+</div>
+<footer>
+  <p>InputPro &mdash; Built for Roblox developers</p>
+  <p style="margin-top:4px">Plugin available on the Creator Store &middot; Runtime is open source on GitHub</p>
+</footer>
+
+</body>
+</html>
