@@ -645,33 +645,6 @@ InputProService.ActiveDeviceChanged:Connect(function(device)
     print("Switched to:", device) -- "Keyboard", "Gamepad", or "Touch"
 end)</code></pre>
 
-  <h3>Folder Structure (Plugin Export)</h3>
-  <p>If you're curious what the plugin creates, here's the instance hierarchy it exports to <code>StarterGui/InputPro/&lt;ConfigName&gt;/</code>:</p>
-  <pre><code>StarterGui/
-  InputPro/                    -- Folder
-    MyGameInput/                -- Folder (your config name)
-      @DefaultContext = "Gameplay"   -- Attribute (optional)
-      Gameplay/                 -- InputContext
-        Priority = 1
-        Sink = false
-        Jump/                   -- InputAction (Type = Bool)
-          @TouchButtonPath = "game.StarterGui.MobileUI.JumpBtn"  -- (if linked)
-          @TouchButtonName = "JumpBtn"                           -- (if linked)
-          Keyboard_Space/       -- InputBinding (KeyCode = Space)
-          Gamepad1_ButtonA/     -- InputBinding (KeyCode = ButtonA)
-        Move/                   -- InputAction (Type = Direction2D)
-          Keyboard_W/           -- InputBinding
-          Keyboard_S/
-          ...
-      UI/                       -- InputContext
-        Priority = 2
-        Sink = true
-        CloseMenu/              -- InputAction
-          ...</code></pre>
-
-  <div class="callout">
-    <strong>Tip:</strong> You can build this hierarchy manually in Studio without the plugin, then use <code>InputProService.Init("MyGameInput")</code> to load it. The runtime doesn't care how the instances were created.
-  </div>
 </section>
 
 <!-- ============================================================ -->
