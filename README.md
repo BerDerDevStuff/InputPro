@@ -130,6 +130,7 @@ Full documentation: **[InputPro Docs](https://BerDerDevStuff.github.io/InputPro/
 
 - [`examples/PluginBootstrap.client.luau`](examples/PluginBootstrap.client.luau) — What the plugin auto-generates
 - [`examples/ManualSetup.client.luau`](examples/ManualSetup.client.luau) — Full manual setup without plugin
+- [`examples/test_config.rbxm`](examples/test_config.rbxm) — Pre-built config with sample contexts, actions, and bindings. Insert into `StarterGui` and use with `InputProService.Init()` to test the runtime without the plugin.
 
 ## License
 
