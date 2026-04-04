@@ -1,6 +1,6 @@
 # InputPro Runtime
 
-Client-side runtime for the [InputPro](https://github.com/BerDerDevStuff/InputPro) input binding system for Roblox.
+Client-side runtime for the [InputPro](https://create.roblox.com/store/asset/70499943911585/InputPro) input binding system for Roblox.
 
 Provides a clean API for input handling: bind actions to keys, switch contexts, detect devices, and show auto-updating prompt hints.
 
