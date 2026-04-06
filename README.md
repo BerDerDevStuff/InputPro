@@ -17,7 +17,7 @@ InputPro = "BerDerDevStuff/inputpro@1.0.0"
 ```
 
 ### Option 3: InputPro Plugin (automatic)
-If you use the [InputPro Studio Plugin](https://create.roblox.com/store), the runtime is auto-installed when you export a config.
+If you use the [InputPro Studio Plugin](https://create.roblox.com/store/asset/70499943911585/InputPro), the runtime is auto-installed when you export a config.
 
 ## Quick Start (with Plugin)
 
