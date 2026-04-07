@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.1 — 2026-04-07
+
+### Fixed
+- Mouse button bindings lost after closing and reopening the plugin — session now saves immediately after export
+- Importing a config dropped mouse button bindings — import now recognizes `Keyboard_MouseLeftButton/Right/Middle` instances
+
+---
+
 ## 1.1.0 — 2026-04-07
 
 ### **Re-install the runtime** to get mouse button icon support!
