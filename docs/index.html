@@ -189,7 +189,7 @@
 <!-- ============================================================ -->
 <nav>
   <div class="nav-inner">
-    <a href="#" class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 200" width="140" height="45"><g transform="translate(100, 100)"><path d="M-16,-49.5 Q-16,-55.5 -10,-55.5 L10,-55.5 Q16,-55.5 16,-49.5 L16,-23.5 Q16,-17.5 3,-7.5 Q0,-4.5 -3,-7.5 Q-16,-17.5 -16,-23.5 Z" fill="#f0f0f0"/><path d="M-16,49.5 Q-16,55.5 -10,55.5 L10,55.5 Q16,55.5 16,49.5 L16,23.5 Q16,17.5 3,7.5 Q0,4.5 -3,7.5 Q-16,17.5 -16,23.5 Z" fill="#f0f0f0"/><path d="M-49.5,-16 Q-55.5,-16 -55.5,-10 L-55.5,10 Q-55.5,16 -49.5,16 L-23.5,16 Q-17.5,16 -7.5,3 Q-4.5,0 -7.5,-3 Q-17.5,-16 -23.5,-16 Z" fill="#f0f0f0"/><path d="M49.5,-16 Q55.5,-16 55.5,-10 L55.5,10 Q55.5,16 49.5,16 L23.5,16 Q17.5,16 7.5,3 Q4.5,0 7.5,-3 Q17.5,-16 23.5,-16 Z" fill="#e8943a"/></g><text x="172" y="118" font-family="'Nunito', sans-serif" font-size="64" font-weight="800" letter-spacing="-1"><tspan fill="#f0f0f0">input</tspan><tspan fill="#e8943a">pro</tspan></text></svg></a>
+    <a href="#" class="logo"><img src="assets/logo_stroked.png" alt="InputPro" height="45"></a>
     <div class="nav-links">
       <a href="#plugin">Plugin</a>
       <a href="#runtime">Runtime API</a>
@@ -204,7 +204,7 @@
 <!-- ============================================================ -->
 <div class="container">
 <section class="hero">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 200" width="400" height="130" style="margin-bottom: 12px;"><g transform="translate(100, 100)"><path d="M-16,-49.5 Q-16,-55.5 -10,-55.5 L10,-55.5 Q16,-55.5 16,-49.5 L16,-23.5 Q16,-17.5 3,-7.5 Q0,-4.5 -3,-7.5 Q-16,-17.5 -16,-23.5 Z" fill="#f0f0f0"/><path d="M-16,49.5 Q-16,55.5 -10,55.5 L10,55.5 Q16,55.5 16,49.5 L16,23.5 Q16,17.5 3,7.5 Q0,4.5 -3,7.5 Q-16,17.5 -16,23.5 Z" fill="#f0f0f0"/><path d="M-49.5,-16 Q-55.5,-16 -55.5,-10 L-55.5,10 Q-55.5,16 -49.5,16 L-23.5,16 Q-17.5,16 -7.5,3 Q-4.5,0 -7.5,-3 Q-17.5,-16 -23.5,-16 Z" fill="#f0f0f0"/><path d="M49.5,-16 Q55.5,-16 55.5,-10 L55.5,10 Q55.5,16 49.5,16 L23.5,16 Q17.5,16 7.5,3 Q4.5,0 7.5,-3 Q17.5,-16 23.5,-16 Z" fill="#e8943a"/></g><text x="172" y="118" font-family="'Nunito', sans-serif" font-size="64" font-weight="800" letter-spacing="-1"><tspan fill="#f0f0f0">input</tspan><tspan fill="#e8943a">pro</tspan></text></svg>
+  <img src="assets/logo_stroked.png" alt="InputPro" height="130" style="margin-bottom: 12px;">
   <p class="tagline">Visual input binding editor for Roblox's Input Action System. Configure keyboard, gamepad, and touch bindings in Studio.</p>
   <div class="badges">
     <span class="badge badge-green">Free Runtime</span>
@@ -284,6 +284,10 @@
 
   <div class="callout warn">
     <strong>Reserved Keys:</strong> Some keys (F1-F12, Escape, etc.) are intercepted by Studio and cannot be bound via listen mode. Check <strong>Help > Reserved Keys</strong> for the full list.
+  </div>
+
+  <div class="callout">
+    <strong>Mouse Buttons:</strong> Right-click and middle-click are captured automatically in listen mode. Left-click (MouseButton1) cannot be captured this way because it's used to interact with the plugin UI. To bind MouseButton1, switch to <strong>Browse</strong> mode during listen and select it from the dropdown list.
   </div>
 
   <h4>Touch</h4>

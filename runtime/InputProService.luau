@@ -1,4 +1,7 @@
--- Client-side runtime for the InputPro plugin.
+-- InputProService — Client-side runtime for the InputPro plugin.
+-- Author: BerDeryaDev1010
+-- License: MIT
+--
 -- Manages InputContext/InputAction/InputBinding instances created by the plugin export.
 --
 -- Usage:
@@ -347,8 +350,21 @@ function InputProService.GetInputImage(actionName: string, device: string?): (st
 	local targetDevice = device or _activeDevice
 	if targetDevice == "Touch" then return nil, nil end
 
+	local MOUSE_ICONS = {
+		Keyboard_MouseLeftButton   = { image = "rbxassetid://123465006244232", name = "MouseLeftButton" },
+		Keyboard_MouseRightButton  = { image = "rbxassetid://126168658869414", name = "MouseRightButton" },
+		Keyboard_MouseMiddleButton = { image = "rbxassetid://85495289721827",  name = "MouseMiddleButton" },
+	}
+
 	for _, child in ipairs(action:GetChildren()) do
 		if not child:IsA("InputBinding") then continue end
+
+		-- Mouse button bindings (KeyCode is Unknown, name encodes the input type)
+		if targetDevice == "Keyboard" and MOUSE_ICONS[child.Name] then
+			local info = MOUSE_ICONS[child.Name]
+			return info.image, info.name
+		end
+
 		local keyCode = child.KeyCode
 		if keyCode == Enum.KeyCode.Unknown then continue end
 
@@ -425,6 +441,8 @@ end
 --- Creates a key badge on a GuiObject showing the bound input for an action.
 --- Clones from PromptHintTemplate in the config folder if available, otherwise uses a default.
 --- Auto-updates when the player switches between keyboard/gamepad. Hidden on touch.
+--- Note: If badges overlap with sibling UI elements, set the parent ScreenGui's
+--- ZIndexBehavior to Enum.ZIndexBehavior.Global for correct layering.
 ---@param actionName string — Action name.
 ---@param parent GuiObject — The UI element to attach the badge to.
 ---@param config table? — Optional: { Corner: string?, Size: number?, Offset: Vector2? }
@@ -462,6 +480,13 @@ function InputProService.CreatePromptHint(actionName: string, parent: GuiObject,
 	frame.AnchorPoint = Vector2.new(0.5, 0.5)
 	frame.Position = cornerPositions[corner] or cornerPositions.TopRight
 	frame.ZIndex = 100
+
+	-- Ensure all children also render above surrounding elements
+	for _, child in ipairs(frame:GetDescendants()) do
+		if child:IsA("GuiObject") then
+			child.ZIndex = 999
+		end
+	end
 
 	local imageLabel = frame:FindFirstChild("GlyphImage")
 	local textLabel = frame:FindFirstChild("KeyText")
@@ -595,7 +620,12 @@ function InputProService.CreateBinding(actionName: string, inputCode: Enum.KeyCo
 			binding.ReleasedThreshold = 0.1
 		end
 	elseif inputType then
-		binding.Name = "Bind_" .. inputType.Name
+		local MOUSE_NAMES = {
+			[Enum.UserInputType.MouseButton1] = "MouseLeftButton",
+			[Enum.UserInputType.MouseButton2] = "MouseRightButton",
+			[Enum.UserInputType.MouseButton3] = "MouseMiddleButton",
+		}
+		binding.Name = "Keyboard_" .. (MOUSE_NAMES[inputType] or inputType.Name)
 	else
 		binding:Destroy()
 		warn("InputProService: Invalid parameters for CreateBinding.")
