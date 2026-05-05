@@ -16,7 +16,20 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 
+local Signal = require(script.Signal)
+
 local InputProService = {}
+
+-- GestureEventData is the payload delivered to BindPressed/BindReleased/BindStateChanged
+-- callbacks when the source is a touch gesture (Tap / LongPress / Swipe).
+-- Native bindings (keyboard / gamepad / touch button) deliver nil.
+export type GestureEventData = {
+	Gesture: "Tap" | "LongPress" | "Swipe",
+	StartPosition: Vector2,
+	EndPosition: Vector2?,
+	Position: Vector2?,
+	Duration: number?,
+}
 
 type Connection = {
 	Disconnect: (self: Connection) -> ()
@@ -42,6 +55,13 @@ local _configFolder: Folder? = nil
 local _contexts: {[string]: InputContext} = {}
 local _actions: {[string]: InputAction} = {}
 local _activeContexts: {string} = {}
+
+-- Per-action Signals that BindPressed/BindReleased/BindStateChanged subscribe to.
+-- Native InputAction events feed these (with nil payload), and the gesture bridge
+-- feeds them too (with a GestureEventData payload). One source, one subscription list.
+local _pressedSignals: {[string]: any} = {}
+local _releasedSignals: {[string]: any} = {}
+local _stateChangedSignals: {[string]: any} = {}
 
 local function waitForInit()
 	if _isInitialized then return end
@@ -108,6 +128,23 @@ local function _getKeyDisplayName(keyCode: Enum.KeyCode): string
 	return KEY_DISPLAY_NAMES[keyCode.Name] or keyCode.Name
 end
 
+-- Lazily create the per-action Signal trio and connect the underlying InputAction's
+-- native Pressed/Released/StateChanged events to fire those Signals with nil payload.
+-- Idempotent — safe to call repeatedly for the same key.
+local function ensureActionSignals(key: string, action: InputAction)
+	if _pressedSignals[key] then return end
+	local pressed = Signal.new()
+	local released = Signal.new()
+	local stateChanged = Signal.new()
+	_pressedSignals[key] = pressed
+	_releasedSignals[key] = released
+	_stateChangedSignals[key] = stateChanged
+
+	action.Pressed:Connect(function() pressed:Fire(nil) end)
+	action.Released:Connect(function() released:Fire(nil) end)
+	action.StateChanged:Connect(function(value) stateChanged:Fire(value) end)
+end
+
 local function cacheResources(folder: Folder)
 	for _, child in ipairs(folder:GetChildren()) do
 		if child:IsA("InputContext") then
@@ -120,10 +157,25 @@ local function cacheResources(folder: Folder)
 					end
 					_actions[action.Name] = action
 					_actions[child.Name .. "/" .. action.Name] = action
+
+					-- Native event Signals are keyed only by the qualified name to avoid
+					-- double-firing when an action is also looked up via simple name.
+					ensureActionSignals(child.Name .. "/" .. action.Name, action)
 				end
 			end
 		end
 	end
+end
+
+-- Resolve an action name (simple or qualified) to the qualified key used by the Signal maps.
+local function resolveSignalKey(actionName: string): string?
+	local action = _actions[actionName]
+	if not action then return nil end
+	-- If actionName is already qualified ("Ctx/Action"), use as-is. Otherwise build it.
+	if string.find(actionName, "/") then return actionName end
+	local context = action.Parent
+	if context then return context.Name .. "/" .. action.Name end
+	return nil
 end
 
 local function setupTouchBindings(folder: Folder)
@@ -165,6 +217,232 @@ local function setupTouchBindings(folder: Folder)
 	end
 end
 
+-- ============================================================================
+-- Gesture Bridge — connects UserInputService touch events to action Signals
+-- ============================================================================
+
+type GestureBindingRec = {
+	GestureType: "Tap" | "LongPress" | "Swipe",
+	Action: InputAction,
+	Key: string,           -- qualified Signal key (Context/Action)
+	Context: InputContext,
+	SwipeTolerance: number?,  -- Swipe only
+}
+
+-- One target per Swipe-bound action that the touch is currently traveling for.
+-- A single InputObject can drive multiple targets (multiple Swipe bindings on
+-- different actions, each with its own tolerance + pressed state).
+type SwipeTarget = {
+	Rec: GestureBindingRec,
+	PressedFired: boolean,
+}
+
+type SwipeState = {
+	StartPos: Vector2,
+	LastPos: Vector2,
+	StartTime: number,
+	Targets: {SwipeTarget},
+}
+
+local _gestureRecs: {GestureBindingRec} = {}
+local _activeSwipes: {[InputObject]: SwipeState} = {}
+
+local function _isContextEnabled(rec: GestureBindingRec): boolean
+	return rec.Context and rec.Context.Enabled == true
+end
+
+local function _firePressed(rec: GestureBindingRec, payload: GestureEventData)
+	local sig = _pressedSignals[rec.Key]
+	if sig then sig:Fire(payload) end
+end
+
+local function _fireReleased(rec: GestureBindingRec, payload: GestureEventData)
+	local sig = _releasedSignals[rec.Key]
+	if sig then sig:Fire(payload) end
+end
+
+local function _fireStateChanged(rec: GestureBindingRec, payload: GestureEventData)
+	local sig = _stateChangedSignals[rec.Key]
+	if sig then sig:Fire(payload) end
+end
+
+local function setupGestureBindings(folder: Folder)
+	if not UserInputService.TouchEnabled then return end
+
+	-- Discover gesture bindings from the exported instance tree
+	for _, ctx in ipairs(folder:GetChildren()) do
+		if not ctx:IsA("InputContext") then continue end
+		for _, action in ipairs(ctx:GetChildren()) do
+			if not action:IsA("InputAction") then continue end
+			local gFolder = action:FindFirstChild("Gestures")
+			if not gFolder then continue end
+			for _, cfg in ipairs(gFolder:GetChildren()) do
+				if not cfg:IsA("Configuration") then continue end
+				local gType = cfg:GetAttribute("GestureType")
+				if gType ~= "Tap" and gType ~= "LongPress" and gType ~= "Swipe" then continue end
+
+				-- Defensive: gestures only make sense on Bool actions
+				if action.Type ~= Enum.InputActionType.Bool then
+					warn(("InputProService: Gesture on non-Bool action '%s/%s' skipped"):format(ctx.Name, action.Name))
+					continue
+				end
+
+				local rec: GestureBindingRec = {
+					GestureType = gType,
+					Action = action,
+					Key = ctx.Name .. "/" .. action.Name,
+					Context = ctx,
+					SwipeTolerance = (gType == "Swipe") and (cfg:GetAttribute("SwipeTolerance") or 10) or nil,
+				}
+				table.insert(_gestureRecs, rec)
+			end
+		end
+	end
+
+	if #_gestureRecs == 0 then return end
+
+	-- Tap: pressed-only pulse, no released, no statechanged
+	UserInputService.TouchTap:Connect(function(positions, gameProcessedEvent)
+		if gameProcessedEvent then return end
+		local pos = positions[1] or Vector2.new()
+		for _, rec in ipairs(_gestureRecs) do
+			if rec.GestureType ~= "Tap" then continue end
+			if not _isContextEnabled(rec) then continue end
+			_firePressed(rec, { Gesture = "Tap", StartPosition = pos })
+		end
+	end)
+
+	-- LongPress: pressed on Begin, released on End, statechanged on both
+	local _longPressState: {[GestureBindingRec]: {Pos: Vector2, StartTime: number}} = {}
+	UserInputService.TouchLongPress:Connect(function(touchPositions, state, gameProcessedEvent)
+		if gameProcessedEvent then return end
+		local pos = touchPositions[1] or Vector2.new()
+		for _, rec in ipairs(_gestureRecs) do
+			if rec.GestureType ~= "LongPress" then continue end
+			if not _isContextEnabled(rec) then
+				-- Drop any stale state if context flipped off mid-press
+				_longPressState[rec] = nil
+				continue
+			end
+			if state == Enum.UserInputState.Begin then
+				_longPressState[rec] = { Pos = pos, StartTime = os.clock() }
+				local payload: GestureEventData = { Gesture = "LongPress", StartPosition = pos }
+				_firePressed(rec, payload)
+				_fireStateChanged(rec, payload)
+			elseif state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then
+				local prior = _longPressState[rec]
+				if prior then
+					local payload: GestureEventData = {
+						Gesture = "LongPress",
+						StartPosition = prior.Pos,
+						EndPosition = pos,
+						Duration = os.clock() - prior.StartTime,
+					}
+					_fireReleased(rec, payload)
+					_fireStateChanged(rec, payload)
+					_longPressState[rec] = nil
+				end
+			end
+		end
+	end)
+
+	-- Swipe: track raw TouchStarted/Moved/Ended per InputObject, gate on tolerance
+	UserInputService.TouchStarted:Connect(function(input, gameProcessedEvent)
+		if gameProcessedEvent then return end
+		local startPos = Vector2.new(input.Position.X, input.Position.Y)
+		local targets: {SwipeTarget} = {}
+		for _, rec in ipairs(_gestureRecs) do
+			if rec.GestureType ~= "Swipe" then continue end
+			if not _isContextEnabled(rec) then continue end
+			table.insert(targets, { Rec = rec, PressedFired = false })
+		end
+		if #targets == 0 then return end
+		_activeSwipes[input] = {
+			StartPos = startPos,
+			LastPos = startPos,
+			StartTime = os.clock(),
+			Targets = targets,
+		}
+	end)
+
+	UserInputService.TouchMoved:Connect(function(input, gameProcessedEvent)
+		local state = _activeSwipes[input]
+		if not state then return end
+		local current = Vector2.new(input.Position.X, input.Position.Y)
+		state.LastPos = current
+		if gameProcessedEvent then return end
+		for _, target in ipairs(state.Targets) do
+			local rec = target.Rec
+			if not _isContextEnabled(rec) then continue end
+			if not target.PressedFired then
+				local dist = (current - state.StartPos).Magnitude
+				local tol = rec.SwipeTolerance or 10
+				if dist >= tol then
+					target.PressedFired = true
+					_firePressed(rec, { Gesture = "Swipe", StartPosition = state.StartPos })
+					_fireStateChanged(rec, { Gesture = "Swipe", StartPosition = state.StartPos, Position = current })
+				end
+			else
+				_fireStateChanged(rec, { Gesture = "Swipe", StartPosition = state.StartPos, Position = current })
+			end
+		end
+	end)
+
+	UserInputService.TouchEnded:Connect(function(input, _gameProcessedEvent)
+		local state = _activeSwipes[input]
+		if not state then return end
+		_activeSwipes[input] = nil
+		local endPos = Vector2.new(input.Position.X, input.Position.Y)
+		local duration = os.clock() - state.StartTime
+		-- Released fires regardless of gameProcessedEvent — once Pressed has fired,
+		-- the gesture is committed and must complete its lifecycle.
+		for _, target in ipairs(state.Targets) do
+			if target.PressedFired then
+				local payload: GestureEventData = {
+					Gesture = "Swipe",
+					StartPosition = state.StartPos,
+					EndPosition = endPos,
+					Duration = duration,
+				}
+				_fireReleased(target.Rec, payload)
+				_fireStateChanged(target.Rec, payload)
+			end
+		end
+	end)
+
+	-- Force-release any in-progress swipe whose context flips off
+	for _, ctx in pairs(_contexts) do
+		ctx:GetPropertyChangedSignal("Enabled"):Connect(function()
+			if ctx.Enabled then return end
+			for input, state in pairs(_activeSwipes) do
+				local lastPos = state.LastPos
+				local duration = os.clock() - state.StartTime
+				local survivors: {SwipeTarget} = {}
+				for _, target in ipairs(state.Targets) do
+					if target.Rec.Context == ctx then
+						if target.PressedFired then
+							_fireReleased(target.Rec, {
+								Gesture = "Swipe",
+								StartPosition = state.StartPos,
+								EndPosition = lastPos,
+								Duration = duration,
+							})
+						end
+						-- target dropped (don't re-add to survivors)
+					else
+						table.insert(survivors, target)
+					end
+				end
+				if #survivors == 0 then
+					_activeSwipes[input] = nil
+				else
+					state.Targets = survivors
+				end
+			end
+		end)
+	end
+end
+
 --- Mark the service as initialized without loading a config folder.
 --- Use this when building input mappings entirely from code via the Manual Creation API.
 function InputProService.InitManual()
@@ -201,6 +479,7 @@ function InputProService.Init(configName: string)
 
 	cacheResources(configFolder)
 	setupTouchBindings(configFolder)
+	setupGestureBindings(configFolder)
 
 	_configFolder = configFolder
 	_isInitialized = true
@@ -278,15 +557,15 @@ end
 ---@param actionName string — Name of the action.
 ---@param callback () -> () — Function to call on press.
 ---@return Connection — Call :Disconnect() to stop listening.
-function InputProService.BindPressed(actionName: string, callback: () -> ()): Connection
+function InputProService.BindPressed(actionName: string, callback: (payload: GestureEventData?) -> ()): Connection
 	waitForInit()
-	local action = _actions[actionName]
-	if not action then
+	local key = resolveSignalKey(actionName)
+	if not key or not _pressedSignals[key] then
 		warn("InputProService: Action '" .. actionName .. "' not found.")
 		return { Disconnect = function() end }
 	end
 
-	local conn = action.Pressed:Connect(callback)
+	local conn = _pressedSignals[key]:Connect(callback)
 	return { Disconnect = function() conn:Disconnect() end }
 end
 
@@ -295,15 +574,15 @@ end
 ---@param actionName string — Name of the action.
 ---@param callback () -> () — Function to call on release.
 ---@return Connection — Call :Disconnect() to stop listening.
-function InputProService.BindReleased(actionName: string, callback: () -> ()): Connection
+function InputProService.BindReleased(actionName: string, callback: (payload: GestureEventData?) -> ()): Connection
 	waitForInit()
-	local action = _actions[actionName]
-	if not action then
+	local key = resolveSignalKey(actionName)
+	if not key or not _releasedSignals[key] then
 		warn("InputProService: Action '" .. actionName .. "' not found.")
 		return { Disconnect = function() end }
 	end
 
-	local conn = action.Released:Connect(callback)
+	local conn = _releasedSignals[key]:Connect(callback)
 	return { Disconnect = function() conn:Disconnect() end }
 end
 
@@ -315,13 +594,13 @@ end
 ---@return Connection — Call :Disconnect() to stop listening.
 function InputProService.BindStateChanged(actionName: string, callback: (value: any) -> ()): Connection
 	waitForInit()
-	local action = _actions[actionName]
-	if not action then
+	local key = resolveSignalKey(actionName)
+	if not key or not _stateChangedSignals[key] then
 		warn("InputProService: Action '" .. actionName .. "' not found.")
 		return { Disconnect = function() end }
 	end
 
-	local conn = action.StateChanged:Connect(callback)
+	local conn = _stateChangedSignals[key]:Connect(callback)
 	return { Disconnect = function() conn:Disconnect() end }
 end
 
@@ -620,12 +899,18 @@ function InputProService.CreateBinding(actionName: string, inputCode: Enum.KeyCo
 			binding.ReleasedThreshold = 0.1
 		end
 	elseif inputType then
-		local MOUSE_NAMES = {
-			[Enum.UserInputType.MouseButton1] = "MouseLeftButton",
-			[Enum.UserInputType.MouseButton2] = "MouseRightButton",
-			[Enum.UserInputType.MouseButton3] = "MouseMiddleButton",
+		local MOUSE_KEYCODES = {
+			[Enum.UserInputType.MouseButton1] = Enum.KeyCode.MouseLeftButton,
+			[Enum.UserInputType.MouseButton2] = Enum.KeyCode.MouseRightButton,
+			[Enum.UserInputType.MouseButton3] = Enum.KeyCode.MouseMiddleButton,
 		}
-		binding.Name = "Keyboard_" .. (MOUSE_NAMES[inputType] or inputType.Name)
+		local mouseKey = MOUSE_KEYCODES[inputType]
+		if mouseKey then
+			binding.Name = "Keyboard_" .. mouseKey.Name
+			binding.KeyCode = mouseKey
+		else
+			binding.Name = "Keyboard_" .. inputType.Name
+		end
 	else
 		binding:Destroy()
 		warn("InputProService: Invalid parameters for CreateBinding.")

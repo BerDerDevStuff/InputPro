@@ -218,7 +218,7 @@
 <!-- ============================================================ -->
 <section id="overview">
   <h2>How It Works</h2>
-  <p class="section-desc">InputPro ships as two packages: a paid Studio plugin for visual editing, and a free open-source runtime for your game code.</p>
+  <p class="section-desc">InputPro ships as two packages: a Studio plugin for visual editing, and an open-source runtime for your game code. Both are free.</p>
 
   <div class="card-grid">
     <div class="card">
@@ -244,12 +244,12 @@
 <!-- PLUGIN                                                       -->
 <!-- ============================================================ -->
 <section id="plugin">
-  <h2>Plugin Guide <span class="section-badge badge-dark">Paid</span></h2>
+  <h2>Plugin Guide</h2>
   <p class="section-desc">The InputPro plugin adds a visual editor to Roblox Studio for creating input bindings without writing code.</p>
 
   <h3>Installation</h3>
   <ol>
-    <li>Purchase and install the plugin from the <strong>Creator Store</strong></li>
+    <li>Install the plugin from the <strong>Creator Store</strong> (free)</li>
     <li>Open Studio — click the <strong>InputPro</strong> button in the toolbar</li>
     <li>The editor widget opens as a dockable panel</li>
   </ol>
@@ -308,6 +308,39 @@
   </div>
 
   <div class="screenshot"><img src="assets/touch-link.png" alt="Action row with touch pill" style="max-width:100%;border-radius:6px;"></div>
+
+  <h4>Touch Gestures <span class="badge badge-green">New in 1.3</span></h4>
+  <p>You can also bind <strong>screen-level gestures</strong> directly to actions, with no <code>GuiButton</code> involved. Three gesture types are supported in 1.3:</p>
+  <ul>
+    <li><strong>Tap</strong> — fires <code>Pressed</code> only on a single tap. No <code>Released</code>, no <code>StateChanged</code> — Tap is a one-shot pulse.</li>
+    <li><strong>LongPress</strong> — fires <code>Pressed</code> when Roblox detects a long press, <code>Released</code> when the finger lifts. Both events carry a position.</li>
+    <li><strong>Swipe</strong> — fires <code>Pressed</code> on touch-down, streams <code>StateChanged</code> on every touch move, fires <code>Released</code> on touch-up. The payload includes <code>StartPosition</code>, <code>EndPosition</code>, and <code>Duration</code> so you can compute direction, length, or angle yourself — direction is never baked into the binding.</li>
+  </ul>
+
+  <h4 style="font-size: 15px; margin-top: 16px;">How to add a gesture</h4>
+  <ol>
+    <li>Expand a <strong>Bool</strong> action row in the editor (gestures are Bool-only)</li>
+    <li>Click the <strong>+ Gesture</strong> button — an inline picker appears</li>
+    <li>Choose <strong>Tap</strong>, <strong>LongPress</strong>, or <strong>Swipe</strong></li>
+    <li>For Swipe: edit the <strong>Tolerance</strong> field (default 10 px) — finger movement below this is discarded as a stray tap</li>
+  </ol>
+
+  <p>Gesture bindings export as a <code>Gestures</code> folder under each <code>InputAction</code>, with one <code>Configuration</code> child per gesture. Older runtimes that don't know about gestures simply ignore them — forward-compatible.</p>
+
+  <div class="callout">
+    <strong>Reading gesture data in your callback:</strong> for native bindings (keyboard / gamepad / touch button), the callback receives <code>nil</code> as before. For gesture-driven events, it receives a <code>GestureEventData</code> table:
+<pre><code>InputProService.BindReleased("Cut", function(payload)
+    if payload then
+        local delta = payload.EndPosition - payload.StartPosition
+        local angle = math.atan2(delta.Y, delta.X)
+        cutLineFrom(payload.StartPosition, payload.EndPosition, angle)
+    end
+end)</code></pre>
+  </div>
+
+  <div class="callout warn">
+    <strong>Tap vs Swipe:</strong> a Tap fires only <code>Pressed</code> (no Released). If you need press + release on touch, use <strong>LongPress</strong>. Sub-tolerance Swipe touches produce no events at all — a finger that briefly touches and lifts without crossing the tolerance is silently discarded.
+  </div>
 
   <h4>Analog Triggers</h4>
   <p>R2/L2 gamepad triggers support custom <strong>pressed/released thresholds</strong>. Click the binding's edit button to configure when the trigger registers as pressed or released (0.0–1.0 range).</p>
@@ -435,18 +468,18 @@ InputProService.InitManual()</code></pre>
   </div>
 
   <div class="api-entry">
-    <div class="signature">InputProService.BindPressed(actionName: string, callback: () -> ()) -> Connection</div>
-    <div class="desc">Connects to the <strong>Pressed</strong> event of a Bool action. Fires when the action transitions from false to true (key pressed). Returns a Connection with a <code>:Disconnect()</code> method. Yields until Init completes.</div>
+    <div class="signature">InputProService.BindPressed(actionName: string, callback: (payload: GestureEventData?) -> ()) -> Connection</div>
+    <div class="desc">Connects to the <strong>Pressed</strong> event of a Bool action. Fires when the action transitions from false to true. For native bindings (keyboard, gamepad, touch button) the callback receives <code>nil</code>. For touch-gesture bindings (Tap, LongPress, Swipe) the callback receives a <code>GestureEventData</code> table — see <em>Touch Gestures</em> in the Plugin Guide. Returns a Connection with a <code>:Disconnect()</code> method. Yields until Init completes.</div>
   </div>
 
   <div class="api-entry">
-    <div class="signature">InputProService.BindReleased(actionName: string, callback: () -> ()) -> Connection</div>
-    <div class="desc">Connects to the <strong>Released</strong> event of a Bool action. Fires when the action transitions from true to false (key released). Returns a Connection with a <code>:Disconnect()</code> method.</div>
+    <div class="signature">InputProService.BindReleased(actionName: string, callback: (payload: GestureEventData?) -> ()) -> Connection</div>
+    <div class="desc">Connects to the <strong>Released</strong> event of a Bool action. Fires when the action transitions from true to false. Native bindings deliver <code>nil</code>; LongPress and Swipe deliver a <code>GestureEventData</code> table with <code>StartPosition</code>, <code>EndPosition</code>, and <code>Duration</code>. Tap is intentionally pressed-only and never fires Released.</div>
   </div>
 
   <div class="api-entry">
     <div class="signature">InputProService.BindStateChanged(actionName: string, callback: (value: any) -> ()) -> Connection</div>
-    <div class="desc">Connects to the <strong>StateChanged</strong> event of any action type. The callback receives the new state value: <code>boolean</code> for Bool, <code>number</code> for Direction1D, <code>Vector2</code> for Direction2D, <code>Vector3</code> for Direction3D.</div>
+    <div class="desc">Connects to the <strong>StateChanged</strong> event of any action type. For native bindings, the callback receives the new state value: <code>boolean</code> for Bool, <code>number</code> for Direction1D, <code>Vector2</code> for Direction2D, <code>Vector3</code> for Direction3D. For Swipe gestures, fires on every <code>TouchMoved</code> after the tolerance gate is crossed, with a <code>GestureEventData</code> table whose <code>Position</code> is the current finger position. Tap never fires StateChanged.</div>
   </div>
 
   <pre><code>-- Bool action: Jump
